@@ -28,15 +28,12 @@ logger = logging.getLogger(name='utils') # this take the logger from the main in
 ## logger functions
 def info(msg:str) -> None:
     logger.info(msg)
-    print(msg)
 
 def debug(msg:str) -> None:
     logger.debug(msg)
-    print(msg)
 
 def error(msg:str) -> None:
     logger.error(msg)
-    print(msg)
 
 def critical(msg:str, code:int=1) -> None:
     logger.critical(msg)
@@ -346,8 +343,3 @@ class Processor:
         except Exception as error_:
             debug(f'{error_}')
             critical('Somethings go wrong',code=1)
-
-logger.setLevel(level=logging.DEBUG)
-a = APIs().runner(terms=['blood[title]','cancer[title]'])
-print(len(a))
-Processor().runner(medlineData=a)
