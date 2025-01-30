@@ -6,6 +6,9 @@ import csv
 import os
 import logging
 
+## exit code imports
+from get_papers_list.codes import ExitCodes
+
 ## typing defined
 Row = List[ Union[ str, None]]
 Table = List[ Row]
@@ -86,6 +89,7 @@ class APIs:    ## any sorry for naming, i am terable in it
         params:dict[str, Union[ str,list[str]]] = {
             'db': 'pubmed',
             'term': term,
+            'sort': sort,
             'usehistory': 'true',
             'retmax': '1',         ## this function return a papers but we take only one paper from this request to make it lightweight
             'retmode': 'json'
@@ -111,7 +115,7 @@ class APIs:    ## any sorry for naming, i am terable in it
                 result:dict[str,dict] = response.json() ## this response in json
                 count:int = result.get('esearchresult',{}).get('count',0) ## total number of paper in the result
                 ## printing the count of papers and if count is zero exit the code
-                info(f'Total Paper Founds: {count}') if count != 0 else critical('No Paper is Found',code=2)
+                info(f'Total Paper Founds: {count}') if count != 0 else critical('No Paper is Found',code=ExitCodes.NO_RESULT)
 
                 ## extracting the WebEnv and query_key for response for downloading the papers
                 webEnv:str = result['esearchresult']['webenv']     # by doing this if they are not found we get the error
@@ -121,14 +125,15 @@ class APIs:    ## any sorry for naming, i am terable in it
                 error('Response is Bad')
                 debug(f'Response code is : {response.status_code}')
                 debug(f'Response is: {response.text}')
-                critical('Bad Response',code=3)
+                critical('Bad Response', code=ExitCodes.BAD_RESPONSE)
         ## getting any request exception
         except requests.exceptions.RequestException as error_:
             info('Unable to send requests')
             debug(f'{error_}')
+            critical('Somethings goes wrong', code=ExitCodes.FAIL_REQUEST)
         except Exception as error_:
             debug(f'{error_}')
-        critical('Somethings goes wrong',code=1)
+        critical('Somethings goes wrong', code=ExitCodes.GENERAL_ERROR)
 
 
     def efetch(
@@ -173,15 +178,15 @@ class APIs:    ## any sorry for naming, i am terable in it
                 error('Request is Unsuccessful')
                 debug(f'Response Code is: {response.status_code}')
                 debug(f'Response is : {response.text}')
-                critical('Bad Response',code=2)
+                critical('Bad Response', code=ExitCodes.BAD_RESPONSE)
 
         except requests.exceptions.RequestException as error_:
             error('Unable to Send request')
             debug(f'{error_}')
-
+            critical('Somethings goes wrongs', code=ExitCodes.FAIL_REQUEST)
         except Exception as error_:
             debug(f'{error_}')
-        critical('Something goes wrong',code=1)
+        critical('Something goes wrong', code=ExitCodes.GENERAL_ERROR)
 
 
     def runner(
@@ -243,29 +248,24 @@ class Processor:
         """
         self.papers:Papers = []  ## i know thats two much
         paper:Paper = {
-            'pubmedID': '',
-            'DOP': '',
-            'title':'',
-            'authors':[
-                {
-                    'name':'',
-                    'aff':'',
-                },
-            ],
+            "pubmedID": "",
+            "DOP": "",
+            "title": "",
+            "authors": []
         }
         for line in _Data:
-            if ( line == '' or line == ' ' ) and paper != {}:
+            if ( line == '' or line == ' ' ) and paper != {
+                "pubmedID": "",
+                "DOP": "",
+                "title": "",
+                "authors": []
+            }:
                 self.papers.append(paper)
-                paper = {
-                    'pubmedID': '',
-                    'DOP': '',
-                    'title':'',
-                    'authors':[
-                        {
-                            'name':'',
-                            'aff':'',
-                        },
-                    ],
+                paper:Paper = {
+                    "pubmedID": "",
+                    "DOP": "",
+                    "title": "",
+                    "authors": []
                 }
             else:
                 if line.startswith('PMID- '):
@@ -332,7 +332,7 @@ class Processor:
             info('Enverything is written to file')
         except Exception as error_:
             debug(f'{error_}')
-            critical(f'Unable to Write to File: {filepath}',code=4)
+            critical(f'Unable to Write to File: {filepath}', code=ExitCodes.WRITING_ERROR)
 
     def runner(
         self,
@@ -349,7 +349,7 @@ class Processor:
             self.writer(filepath)
         except Exception as error_:
             debug(f'{error_}')
-            critical('Somethings go wrong',code=1)
+            critical('Somethings go wrong', code=ExitCodes.GENERAL_ERROR)
 
 
 ### the search function this function run the upper two classes to get the desired result
@@ -386,7 +386,7 @@ def search(
         maxdate=maxdate,
     ) or ""
 
-    if DATA.__len__() == 0 : critical('Somethings goes Wrong', code=1)
+    if DATA.__len__() == 0 : critical('Somethings goes Wrong', code=ExitCodes.GENERAL_ERROR)
 
     Processor().runner(
         medlineData=DATA,

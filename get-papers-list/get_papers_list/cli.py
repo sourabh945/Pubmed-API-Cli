@@ -1,12 +1,15 @@
 import argparse
 import logging
 from typing import Any
+import sys
+
+
 
 ## utils imports
-from utils import search
+from get_papers_list.utils import search
 
 ## manual import
-from man import MANUAL_TEXT
+from get_papers_list.man import MANUAL_TEXT
 
 ## logger configurations
 logging.basicConfig( level=logging.INFO, format='%(asctime)s [ %(levelname)s ] - %(message)s')
@@ -32,12 +35,14 @@ def main() -> None:
       - If you don't provide an email address and API Key, the script may not be able to access PubMed.
             """,
             formatter_class=argparse.RawTextHelpFormatter,
+            add_help=False,
         )
 
     # Required argument (query)
     parser.add_argument("query", type=str, help="The search query to use with the PubMed API.")
 
     # Optional arguments
+    # parser.add_argument("-h","--help", action='store_true')
     parser.add_argument("-f", "--filepath", type=str, default="output.csv", help="The path to the CSV file (default: pubmed_results.csv)")
     parser.add_argument("-d", "--debug", action="store_true", help="Enable debugging output.")
     parser.add_argument("--api-key", type=str, help="Your NCBI API key.  Required for some PubMed functionality.")
@@ -51,15 +56,16 @@ def main() -> None:
     group.add_argument("--relevance", action="store_true", help="Order results by relevance (default).")
     group.add_argument("--date", action="store_true", help="Order results by date.")
 
-    args: argparse.Namespace = parser.parse_args()
+    args:argparse.Namespace = parser.parse_args()
 
     ## changing the logging level
     if args.debug : logging.getLogger().setLevel( logging.DEBUG )
 
+
     ## adding manual
     if args.help:
         print(MANUAL_TEXT)
-        return
+        sys.exit(0)
 
     arguments: dict[ str, Any] = {}  ## these are the argument we going to pass
 
@@ -72,9 +78,13 @@ def main() -> None:
     if args.relevance : arguments['sort'] = 'relevance'
     if args.date : arguments['sort'] = 'pub_date'
     if args.reldate : arguments['reldate'] = args.reldate
-    if args.mindate : arguments['mindate'] = args.mindate
-    if args.maxdate : arguments['maxdate'] = args.maxdate
+    if args.date_from : arguments['mindate'] = args.date_from
+    if args.date_to : arguments['maxdate'] = args.date_to
 
     search(**arguments)
 
-    return
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

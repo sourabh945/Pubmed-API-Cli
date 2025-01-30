@@ -28,6 +28,13 @@ Example Usage:
   pubmed_search "diabetes" -d --api-key YOUR_API_KEY --email your.email@example.com
   pubmed_search "heart disease" --relevance
 
+Exit Codes:
+    GENERAL_ERROR:int = 1
+    NO_RESULT:int = 2
+    BAD_RESPONSE:int = 3
+    FAIL_REQUEST:int = 4
+    WRITING_ERROR:int = 5
+
 Notes:
   - You can obtain an NCBI API key from: https://www.ncbi.nlm.nih.gov/account/
   - Providing an API key significantly increases the rate limits for PubMed searches.
