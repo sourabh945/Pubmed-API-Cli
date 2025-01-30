@@ -42,7 +42,7 @@ def main() -> None:
     parser.add_argument("query", type=str, help="The search query to use with the PubMed API.")
 
     # Optional arguments
-    # parser.add_argument("-h","--help", action='store_true')
+    parser.add_argument("-h","--help", action='store_true')
     parser.add_argument("-f", "--filepath", type=str, default="output.csv", help="The path to the CSV file (default: pubmed_results.csv)")
     parser.add_argument("-d", "--debug", action="store_true", help="Enable debugging output.")
     parser.add_argument("--api-key", type=str, help="Your NCBI API key.  Required for some PubMed functionality.")
